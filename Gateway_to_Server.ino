@@ -1,13 +1,12 @@
 #include <WiFi.h>
-#include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>      
+#include <ArduinoHttpClient.h>  
 
 // Replace with your Wi-Fi credentials
 const char* ssid = "Verizon-RC400L-24";
 const char* password = "9b18963e";
 
 // JS server IP address and port
-const char kHostname[] = "192.168.1.124"; // JS server's local! IP
+const char kHostname[] = "192.168.1.124"; // If on the same network, add serv's local IP
 const int kPort = 5000;                     // JS server port
 const char kPath[] = "/";                   // Path on the JS server
 
@@ -43,8 +42,6 @@ void loop() {
   HttpClient httpClient(wifiClient, kHostname, kPort); // Use JS server IP and port
 
   String jsonString = "{\"name\": \"Connor\", \"age\": 22, \"city\": \"New York\"}";
-
- Serial.println(jsonString);
 
   Serial.println("Sending POST request to JS server...");
 
