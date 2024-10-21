@@ -1,3 +1,5 @@
+#include <SoftwareSerial.h>
+
 // String for the data we receive from LoRa transmissions
 String incomingString;
 // LoRa
@@ -13,8 +15,11 @@ void setup() {
 
 void loop() {
 
-  //checks if anything has been received yet, this says that the size of available data is larger than 0. 
-    if(lora.available() > 0) {
+  incomingString = lora.readString();
+  Serial.println(incomingString);
+
+  //checks if anything has been received yet
+    if(lora.available()) {
       //read in the data
       incomingString = lora.readString();
       Serial.println(incomingString);
@@ -23,15 +28,16 @@ void loop() {
       char dataArray[30]; 
       incomingString.toCharArray(dataArray,30);
       char* data = strtok(dataArray, "=");
+      char* tranAdd = data;
       data = strtok(NULL, ",");
       data = strtok(NULL, ",");
       data = strtok(NULL, ",");
 
       //checks if the gateway is requesting data
-      if(strcmp(data, "DATA_REQUEST") == 0 && tranAdd == 1) {
+      if(strcmp(data, "DATA_REQUEST") == 0 && tranAdd == "1") {
         //Sends its sensor data back to the gateway
         lora.println("AT+SEND=1,11,SENSOR_DATA"); // LoRa sends AT command with data
-        delay(50)
+        delay(50);
       }
     }
 
