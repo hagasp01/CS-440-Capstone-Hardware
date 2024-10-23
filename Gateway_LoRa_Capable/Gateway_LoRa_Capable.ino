@@ -1,6 +1,5 @@
 #include <WiFi.h>
-#include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>      
+#include <ArduinoHttpClient.h>   
 #include <SoftwareSerial.h>
 #include <RTC.h>
 
@@ -10,7 +9,7 @@ const char* ssid = "Verizon-RC400L-24";
 const char* password = "9b18963e";
 
 // JS server IP address and port
-const char kHostname[] = "138.234.219.63"; // JS server's local! IP
+const char kHostname[] = "192.168.1.163"; // JS server's local! IP
 const int kPort = 5000;                     // JS server port
 const char kPath[] = "/";                   // Path on the JS server
 
