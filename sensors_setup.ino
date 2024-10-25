@@ -1,3 +1,5 @@
+/* Barry Tang  Oct 23, 2024*/
+
 
 #include <DHT22.h>
 #include <SoftwareSerial.h>
