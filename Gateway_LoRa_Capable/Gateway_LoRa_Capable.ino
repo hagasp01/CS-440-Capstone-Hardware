@@ -86,7 +86,7 @@ void loop() {
 
     Serial.println("Requesting Data from " + lora_RX_address);
     //send a request to the current monitor for its sensor data.
-    lora.println("AT+SEND=3,12,DATA_REQUEST"); // LoRa sends AT command for data
+    lora.println("AT+SEND=" + lora_RX_address + ",12,DATA_REQUEST"); // LoRa sends AT command for data
     delay(1000);
     
     //retrieve the current time, this timestamp is used on the website.

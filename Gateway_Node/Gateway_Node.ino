@@ -35,18 +35,16 @@ void loop() {
   //   (poss. to add a message notifying admin that a monitor may be failing)
   for (int currMonitor = 2; currMonitor <= numMonitors; ++currMonitor) {
     lora_RX_address = String(currMonitor);
-    Serial.println(lora_RX_address);
 
     Serial.println("Requesting Data from " + lora_RX_address);
     //send a request to the current monitor for its sensor data.
-    lora.println("AT+SEND=3,12,DATA_REQUEST"); // LoRa sends AT command for data
-    delay(1000);
+    lora.println("AT+SEND=" + lora_RX_address + ",12,DATA_REQUEST"); // LoRa sends AT command for data
     
     //retrieve the current time, this timestamp is used on the website.
     //  timestamp says when the current sensor data was measured.
     RTC.getTime(timeStamp);
     Serial.println(timeStamp);
-    delay(10000);
+    delay(8000);
 
     //checks if anything has been received yet 
     if(lora.available()) {

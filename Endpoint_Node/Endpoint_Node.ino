@@ -198,9 +198,9 @@ void loop() {
   MQread(1);
   MQread(2);
   DHTread();
-  // if (readPMSdata(&pmsSerial)) {
-  //   PMread();
-  // }
+  //  if (readPMSdata(&pmsSerial)) {
+  //    PMread();
+  //  }
 
   //checks if anything has been received yet
     if(lora.available()) {
