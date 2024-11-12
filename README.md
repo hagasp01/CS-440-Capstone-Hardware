@@ -17,9 +17,19 @@ FEATURES
 
 - Wifi Connection: Connects to specified Wifi network
 - HTTP Communication: Sends sensor data received from endpoint nodes to a local JS server using HTTP POST requests
-- RTC Interval Management: 
+- RTC Interval Management: Timestamps sensor data and manages LoRa request intervals sent to Enpoint Nodes
+- LoRa Communication: Sends LoRa message Requesting Sensor Data and receives LoRa messages containing sensor data
+- String Manipulation: Extracts data from LoRa receied string to be sent to local JS server
+- Error Handling: Implements a checksum to ensure sensor data isn't corrupted and detects errors in sending LoRa transmissions,
+  receiving LoRa transmissions, and sending HTTP POST requests to the server
 
 SETUP
+
+- Ensure gateway node LoRa is properly setup according to instructions provided in LoRa sections
+- Plug Arduino into computer with Arduino IDE open
+- Make sure Arduino is wire according to Diagram found in Instruction Manual
+- Switch to Software Serial Output in Arduino IDE
+- Upload Gateway_Node.ino to Gateway Node Arduino
 
 USAGE
 
