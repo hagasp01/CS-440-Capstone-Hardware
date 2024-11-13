@@ -122,7 +122,7 @@ void MQread(int type) {
   } else {
     return;
   }
-  out_str += name; out_str += ","; out_str += unit; out_str += ",";
+  out_str += name; out_str += ",";
   out_str += x; out_str += ";";
 }
 
@@ -131,9 +131,9 @@ void DHTread() {
 
   float t = dht22.getTemperature();
   float h = dht22.getHumidity();
-  out_str += "temperature"; out_str += ","; out_str += "Celcius"; out_str += ",";
+  out_str += "temperature"; out_str += ",";
   out_str += t; out_str += ";";
-  out_str += "humidity"; out_str += ","; out_str += "%rH"; out_str += ",";
+  out_str += "humidity"; out_str += ",";
   out_str += h; out_str += ";";
 
   if (dht22.getLastError() != dht22.OK) {
@@ -147,7 +147,7 @@ void DHTread() {
 
 void PMread() {
   data = data * 0.33;  // 0.33 is the calibration coef.
-  out_str += "PM2.5"; out_str += ","; out_str += "ug/m^3"; out_str += ",";
+  out_str += "PM2.5"; out_str += ",";
   out_str += data; out_str += ";";
   Serial.println("-----------------------------------");
   Serial.print("PM 2.5 (ug / m^3): ");
@@ -230,7 +230,7 @@ void loop() {
         //Sends its sensor data back to the gateway
 
         int checksum = makeChecksum(out_str);
-        String finalMessage = out_str + ";CHK:" + String(checksum);
+        String finalMessage = out_str + "CHK:" + String(checksum);
         int size = finalMessage.length();
         
         
@@ -239,6 +239,6 @@ void loop() {
       }
     }
   Serial.println(out_str);
-  out_str = "";
+  out_str = "{";
   delay(1000);
 }
