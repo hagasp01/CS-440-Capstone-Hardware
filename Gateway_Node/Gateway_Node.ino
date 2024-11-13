@@ -73,7 +73,7 @@ void loop() {
   WiFiClient wifiClient;
   HttpClient httpClient(wifiClient, kHostname, kPort); // Use JS server IP and port
 
-  String jsonString = "{\"Temperature\": 69, \"CO2\": .22, \"LORA Address\": \"example\"}";
+  //String jsonString = "{\"Temperature\": 69, \"CO2\": .22, \"LORA Address\": \"example\"}";
   
     //Start Spencer- slight modifications from Connor
       // Gateway will send a request to the current monitor to send its sensor data back.
@@ -100,6 +100,11 @@ void loop() {
 
       //read in the data
       incomingString = lora.readString();
+
+      //checksum
+
+      //after parsing data out and checksums
+      incomingString += "Timestamp :" + timeStamp + "}"
       Serial.println(incomingString);
       //End Spencer 
         Serial.println("Sending POST request to JS server...");

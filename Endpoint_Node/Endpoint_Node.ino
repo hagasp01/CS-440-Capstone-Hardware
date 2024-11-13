@@ -16,7 +16,7 @@ float RS_air; //Define variable for sensor resistance
 float R0; //Define variable for R0
 float sensorValue; //Define variable for analog readings
 int Vcc = 5; // Define default Vcc as 5V
-String out_str = ""; // output string to LoRa
+String out_str = "{"; // output string to LoRa
 
 // {dpin, apin, RS/R0 in air, RL, R0, m, b}
 float MQsensorInfo[3][7] = {
