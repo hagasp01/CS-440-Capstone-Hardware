@@ -30,6 +30,14 @@ String incomingString;
 // LoRa
 SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
+int makeChecksum(String data) {
+  int checksum = 0;
+  for (int i = 0; i < data.length(); i++) {
+    checksum += data[i];
+  }
+  return checksum;
+}
+
 void setup() {
   Serial.begin(9600);  // Start serial communication
   Serial1.begin(9600);
@@ -220,9 +228,13 @@ void loop() {
       if(strcmp(data, "DATA_REQUEST") == 0) {
         Serial.println("SENDING DATA TO GATEWAY");
         //Sends its sensor data back to the gateway
-        int size = out_str.length();
 
-        lora.println("AT+SEND=1," + String(size) + "," + out_str); // LoRa sends AT command with data
+        int checksum = makeChecksum(out_str);
+        String finalMessage = out_str + ";CHK:" + String(checksum);
+        int size = finalMessage.length();
+        
+        
+        lora.println("AT+SEND=1," + String(size) + "," + finalMessage); // LoRa sends AT command with data
         delay(50);
       }
     }
