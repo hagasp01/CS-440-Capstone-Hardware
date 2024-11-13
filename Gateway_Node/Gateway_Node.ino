@@ -28,6 +28,14 @@ String incomingString;
 // LoRa
 SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
+int calculateChecksum(String data) {
+  int checksum = 0;
+  for (int i = 0; i < data.length(); i++) {
+    checksum += data[i];
+  }
+  return checksum;
+}
+
 void setup() {
   Serial.begin(9600); 
  
@@ -103,6 +111,28 @@ void loop() {
 
       //checksum
 
+      // Make sure incoming string has checksum
+      int chkIndex = incomingString.indexOf("CHK:");
+    
+      if (chkIndex != -1) {
+        
+        //Remove RSSI numbers from recevied string
+        int rssiIndex = incomingString.indexOf(",-");
+        String message = incomingString.substring(0, rssiIndex);
+
+        message = message.substring(message.indexOf(",") + 1, message.length());
+         message = message.substring(message.indexOf(",") + 1, message.length());
+
+        chkIndex = message.indexOf("CHK:");
+  
+        String dataString = message.substring(0, chkIndex);
+    
+        int receivedChecksum = message.substring(chkIndex + 4).toInt();
+
+        // Calculate checksum for data part and verify
+        int calculatedChecksum = calculateChecksum(dataString);
+        Serial.println(calculatedChecksum);
+
       //after parsing data out and checksums
       incomingString += "Timestamp :" + timeStamp + "}"
       Serial.println(incomingString);
@@ -110,6 +140,9 @@ void loop() {
         Serial.println("Sending POST request to JS server...");
 
   // Send the POST request
+  if (calculatedChecksum == receivedChecksum) {
+          Serial.println("Data received correctly: " + dataString);
+        
   int err = httpClient.post(kPath, "/recieve-json", incomingString);
   if (err == 0) {
     Serial.println("POST request sent successfully");
@@ -156,4 +189,7 @@ void loop() {
   httpClient.stop();  // Stop the client
     }
 }
+    } else {
+          Serial.println("Checksum not correct, data corrupted!");
+        } 
 }
