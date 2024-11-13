@@ -7,11 +7,7 @@
 #define DHTpin 5 // SDA, or almost any other I/O pin
 
 DHT22 dht22(DHTpin); 
-
-int rxpin = 6;
-int txpin = 7;
 int data;
-//SoftwareSerial pmsSerial(rxpin, txpin);
 
 int digitalValue;
 int apin = A0;
@@ -36,6 +32,7 @@ SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
 void setup() {
   Serial.begin(9600);  // Start serial communication
+  Serial1.begin(9600);
   lora.begin(9600);   // Start LoRa communication on 9600 Baud
   lora.setTimeout(500); // Max time LoRa will allow for a transmission
 
@@ -198,9 +195,9 @@ void loop() {
   MQread(1);
   MQread(2);
   DHTread();
-  //  if (readPMSdata(&pmsSerial)) {
-  //    PMread();
-  //  }
+   if (readPMSdata(&Serial1)) {
+     PMread();
+   }
 
   //checks if anything has been received yet
     if(lora.available()) {
