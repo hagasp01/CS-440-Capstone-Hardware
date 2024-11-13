@@ -134,16 +134,17 @@ void loop() {
         Serial.println(calculatedChecksum);
 
       //after parsing data out and checksums
-      incomingString += "Timestamp :" + timeStamp + "}"
-      Serial.println(incomingString);
+      dataString = dataString + ("EndpointIndex," + String(currMonitor) + ";");
+      dataString = dataString + ("Timestamp," + String(timeStamp) + "}");
+      Serial.println(dataString);
       //End Spencer 
-        Serial.println("Sending POST request to JS server...");
 
   // Send the POST request
   if (calculatedChecksum == receivedChecksum) {
           Serial.println("Data received correctly: " + dataString);
+          Serial.println("Sending POST request to JS server...");
         
-  int err = httpClient.post(kPath, "/recieve-json", incomingString);
+  int err = httpClient.post(kPath, "/recieve-json", dataString);
   if (err == 0) {
     Serial.println("POST request sent successfully");
 
@@ -188,8 +189,10 @@ void loop() {
 
   httpClient.stop();  // Stop the client
     }
-}
-    } else {
+     else {
           Serial.println("Checksum not correct, data corrupted!");
         } 
+}
+}
+}
 }
