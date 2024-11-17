@@ -15,14 +15,14 @@ float sensor_volt; //Define variable for sensor voltage
 float RS_air; //Define variable for sensor resistance
 float R0; //Define variable for R0
 float sensorValue; //Define variable for analog readings
-int Vcc = 5; // Define default Vcc as 5V
+int Vcc = 4.7; // Define default Vcc as 5V
 String out_str = "{"; // output string to LoRa
 
 // {dpin, apin, RS/R0 in air, RL, R0, m, b}
 float MQsensorInfo[3][7] = {
-  {2, 19, 60, 2000, -1, -0.7, -0.28}, //MQ3
-  {3, 18, 12.6, 10000, -1, -0.74, 1.377}, //MQ7
-  {4, 17, 3.5, 2000, -1, -0.255, 0.718}, //MQ135
+  {2, 5, 60, 2000, -1, -0.7, -0.28}, //MQ3
+  {3, 4, 12.6, 10000, -1, -0.642, 1.267}, //MQ7
+  {4, 3, 3.5, 36000, -1, -0.345, 0.7}, //MQ135
 };
 // String for the data we receive from LoRa transmissions
 String incomingString;
