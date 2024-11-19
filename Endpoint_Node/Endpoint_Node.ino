@@ -168,7 +168,7 @@ void DHTread() {
   @Barry Tang
 */
 void PMread() {
-  float pm25 = readPMSdata(&Serial1) * 0.33;  // 0.33 is the calibration coef.
+  float pm25 = readPMSdata(&Serial1)/3.;  // 0.33 is the calibration coef.
   out_str += getOutputString(3, pm25);
   Serial.println("-----------------------------------");
   Serial.print("PM 2.5 (ug / m^3): ");
@@ -183,20 +183,20 @@ void PMread() {
 float readPMSdata(Stream *s) {
   float pm25;
   if (!s->available()) {
-    pm25 = -999*3.33; // error
+    pm25 = -999*3; // error
     return pm25;
   }
 
   // Read a byte at a time until we get to the special '0x42' start-byte
   if (s->peek() != 0xA5) {
     s->read();
-    pm25 = -999*3.33; // error
+    pm25 = -999*3; // error
     return pm25;
   }
 
   // Now read all 4 bytes
   if (s->available() < 4) {
-    pm25 = -999*3.33; // error
+    pm25 = -999*3; // error
     return pm25;
   }
 
@@ -211,7 +211,7 @@ float readPMSdata(Stream *s) {
   raw_sum = raw_sum & ((1 << 7) - 1); // clear bits higher than the right 7 bits
   uint16_t checksum = buffer[3];    // get checksum ready
   if (raw_sum != checksum) {
-    pm25 = -999*3.33; // error
+    pm25 = -999*3; // error
     return pm25;
   } 
 
