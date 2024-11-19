@@ -20,9 +20,8 @@ float sensor_volt; //Define variable for sensor voltage
 float RS_air; //Define variable for sensor resistance
 float R0; //Define variable for R0
 float sensorValue; //Define variable for analog readings
-int Vcc = 4.7; // Define default Vcc as 5V, but actual voltage is slightly lower
-               // Measure the voltage to get an accurate value
-String out_str = ""; // output string to LoRa
+int Vcc = 4.7; // Define default Vcc as 5V
+String out_str = "{"; // output string to LoRa
 
 // {dpin, apin, RS/R0 in clean air, RL, R0, m, b}
 float MQsensorInfo[3][7] = {
@@ -268,12 +267,13 @@ void loop() {
         int checksum = makeChecksum(out_str);
         String final_msg = out_str + "CHK:" + String(checksum);
         int size = final_msg.length();
+        // !!! should there be a closing right bracket in the final_msg? --barry
 
         lora.println("AT+SEND=1," + String(size) + "," + final_msg); // LoRa sends AT command with data
         delay(50);
       }
     }
   Serial.println(out_str);
-  out_str = "";
+  out_str = "{";
   delay(1000);
 }
