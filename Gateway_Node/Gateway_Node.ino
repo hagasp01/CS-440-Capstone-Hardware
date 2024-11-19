@@ -20,7 +20,8 @@ const int kNetworkDelay = 1000;
 
 // Number of monitors on the network that the gateway will get data from + 1 (for the Gateway's address)
 const int numMonitors = 3;
-
+int consecutiveMonitorErrors[numMonitors];
+int consecutiveChecksumErrors[numMonitors];
 String lora_RX_address;
 
 // String for the data we receive from LoRa transmissions
@@ -186,11 +187,16 @@ void loop() {
     Serial.print("POST request failed: ");
     Serial.println(err);
   }
-
+  consecutiveChecksumErrors[currMonitor] = 0;
   httpClient.stop();  // Stop the client
     }
      else {
           Serial.println("Checksum not correct, data corrupted!");
+          consecutiveChecksumErrors[currMonitor] += 1;
+          if(consecutiveChecksumErrors[currMonitor] > 3){
+            String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
+            httpClient.post(kPath, "/error-log", dataString);
+          }
         } 
 }
 }
