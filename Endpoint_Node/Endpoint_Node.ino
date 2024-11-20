@@ -50,7 +50,7 @@ String incomingString;
 SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
 /*
-  returns a checksum to be check at gateway node.
+  Calculates and returns a checksum to be checked at gateway node.
   @Joe
 */
 int makeChecksum(String data) {
@@ -262,8 +262,9 @@ void loop() {
       //checks if the gateway is requesting data
       if(strcmp(data, "DATA_REQUEST") == 0) {
         Serial.println("SENDING DATA TO GATEWAY");
-        //Sends its sensor data back to the gateway
+        //Sends its sensor data back to the gateway with calculated checksum
 
+        // Calculates the checksum of data string and appends it to the string to be sent back to the gateway node @Joe
         int checksum = makeChecksum(out_str);
         String final_msg = out_str + "CHK:" + String(checksum);
         int size = final_msg.length();
