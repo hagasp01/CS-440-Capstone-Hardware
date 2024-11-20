@@ -29,6 +29,10 @@ String incomingString;
 // LoRa
 SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
+/*
+  Calculates and returns a checksum to be compared with checksum returned from endpoint node.
+  @Joe
+*/
 int calculateChecksum(String data) {
   int checksum = 0;
   for (int i = 0; i < data.length(); i++) {
@@ -110,30 +114,34 @@ void loop() {
       //read in the data
       incomingString = lora.readString();
 
-      //checksum
+      // Retrieve checksum and use to validate received endpoint node data @Joe
 
-      // Make sure incoming string has checksum
+      // Make sure incoming string has checksum 
       int chkIndex = incomingString.indexOf("CHK:");
     
       if (chkIndex != -1) {
         
-        //Remove RSSI numbers from recevied string
+        // Remove RSSI numbers from received string
         int rssiIndex = incomingString.indexOf(",-");
         String message = incomingString.substring(0, rssiIndex);
 
+        // Isolate data string from beginning of LoRa command
         message = message.substring(message.indexOf(",") + 1, message.length());
          message = message.substring(message.indexOf(",") + 1, message.length());
 
         chkIndex = message.indexOf("CHK:");
-  
+
+        // Isolate actual data string from checksum 
         String dataString = message.substring(0, chkIndex);
-    
+
+        // Retreive checksum sent by endpoint node
         int receivedChecksum = message.substring(chkIndex + 4).toInt();
 
-        // Calculate checksum for data part and verify
+        // Calculate checksum for data string and verify that checksums match
         int calculatedChecksum = calculateChecksum(dataString);
         Serial.println(calculatedChecksum);
-
+        // End @Joe
+        
       //after parsing data out and checksums
       dataString = dataString + ("EndpointIndex," + String(currMonitor) + ";");
       dataString = dataString + ("Timestamp," + String(timeStamp) + "}");
