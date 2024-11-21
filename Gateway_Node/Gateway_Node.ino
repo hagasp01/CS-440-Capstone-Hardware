@@ -201,10 +201,8 @@ void loop() {
      else {
           Serial.println("Checksum not correct, data corrupted!");
           consecutiveChecksumErrors[currMonitor] += 1;
-          if(consecutiveChecksumErrors[currMonitor] > 3){
             String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
             httpClient.post(kPath, "/error-log", dataString);
-          }
         } 
 }
 }
