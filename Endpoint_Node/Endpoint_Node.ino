@@ -227,10 +227,9 @@ float readPMSdata(Stream *s) {
 String getOutputString(int type, float dat) {
   String name = targets[type];
   String unit = units[type];
-  String output = "";
-  output += name; output += ","; 
-  output += unit; output += ",";
-  output += dat; output += ";";
+  String output = "\"";
+  output += name; output += "\":"; 
+  output += dat; output += ",";
   return output;
 }
 
