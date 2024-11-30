@@ -9,9 +9,9 @@ const char* ssid = "Verizon-RC400L-24";
 const char* password = "9b18963e";
 
 // JS server IP address and port
-const char kHostname[] = "192.168.1.163"; // JS server's local! IP
+const char kHostname[] = "192.168.1.197"; // JS server's local! IP
 const int kPort = 5000;                     // JS server port
-const char kPath[] = "/";                   // Path on the JS server
+const char kPath[] = "/api/query/sendData";      // Path on the JS server
 
 // Number of milliseconds to wait without receiving any data before we give up
 const int kNetworkTimeout = 30 * 1000;
@@ -19,20 +19,17 @@ const int kNetworkTimeout = 30 * 1000;
 const int kNetworkDelay = 1000;
 
 // Number of monitors on the network that the gateway will get data from + 1 (for the Gateway's address)
-const int numMonitors = 3;
+const int numMonitors = 2;
 int consecutiveMonitorErrors[numMonitors];
 int consecutiveChecksumErrors[numMonitors];
 String lora_RX_address;
+const char* locations[] = {"Library", "Penn Hall", "Servo", "CUB", "Apple", "Musselman Stadium"};
 
 // String for the data we receive from LoRa transmissions
 String incomingString;
 // LoRa
 SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
 
-/*
-  Calculates and returns a checksum to be compared with checksum returned from endpoint node.
-  @Joe
-*/
 int calculateChecksum(String data) {
   int checksum = 0;
   for (int i = 0; i < data.length(); i++) {
@@ -103,48 +100,46 @@ void loop() {
     delay(1000);
     
     //retrieve the current time, this timestamp is used on the website.
-    //  timestamp says when the current sensor data was measured.
+    // timestamp says when the current sensor data was measured.
     RTC.getTime(timeStamp);
     Serial.println(timeStamp);
-    delay(10000);
+    delay(28000);
 
     //checks if anything has been received yet 
     if(lora.available()) {
 
       //read in the data
       incomingString = lora.readString();
+      if(incomingString.length() > 0){
+      //checksum
 
-      // Retrieve checksum and use to validate received endpoint node data @Joe
-
-      // Make sure incoming string has checksum 
+      // Make sure incoming string has checksum
       int chkIndex = incomingString.indexOf("CHK:");
     
       if (chkIndex != -1) {
         
-        // Remove RSSI numbers from received string
+        //Remove RSSI numbers from recevied string
         int rssiIndex = incomingString.indexOf(",-");
         String message = incomingString.substring(0, rssiIndex);
 
-        // Isolate data string from beginning of LoRa command
         message = message.substring(message.indexOf(",") + 1, message.length());
          message = message.substring(message.indexOf(",") + 1, message.length());
 
         chkIndex = message.indexOf("CHK:");
-
-        // Isolate actual data string from checksum 
+        Serial.println("Message:" + message);
         String dataString = message.substring(0, chkIndex);
-
-        // Retreive checksum sent by endpoint node
+    
         int receivedChecksum = message.substring(chkIndex + 4).toInt();
 
-        // Calculate checksum for data string and verify that checksums match
+        // Calculate checksum for data part and verify
         int calculatedChecksum = calculateChecksum(dataString);
         Serial.println(calculatedChecksum);
-        // End @Joe
-        
+
       //after parsing data out and checksums
-      dataString = dataString + ("EndpointIndex," + String(currMonitor) + ";");
-      dataString = dataString + ("Timestamp," + String(timeStamp) + "}");
+      dataString = dataString + ("\"EndpointIndex\":" + String(currMonitor) + ",");
+      String locationName = locations[currMonitor - 2];
+      dataString = dataString + ("\"Location\":\"" + locationName + "\",");
+      dataString = dataString + ("\"Timestamp\":\"" + String(timeStamp) + "\"}");
       Serial.println(dataString);
       //End Spencer 
 
@@ -153,7 +148,7 @@ void loop() {
           Serial.println("Data received correctly: " + dataString);
           Serial.println("Sending POST request to JS server...");
         
-  int err = httpClient.post(kPath, "/recieve-json", dataString);
+  int err = httpClient.post(kPath, "application/json", dataString);
   if (err == 0) {
     Serial.println("POST request sent successfully");
 
@@ -197,13 +192,16 @@ void loop() {
   }
   consecutiveChecksumErrors[currMonitor] = 0;
   httpClient.stop();  // Stop the client
+      }
     }
-     else {
-          Serial.println("Checksum not correct, data corrupted!");
+      else {
+           Serial.println("Checksum not correct, data corrupted!");
           consecutiveChecksumErrors[currMonitor] += 1;
+           if(consecutiveChecksumErrors[currMonitor] > 3){
             String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
-            httpClient.post(kPath, "/error-log", dataString);
-        } 
+            httpClient.post(kPath, "/error-log", errorMessage);
+          }
+         } 
 }
 }
 }
