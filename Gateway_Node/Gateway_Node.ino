@@ -1,5 +1,5 @@
 #include <WiFi.h>
-#include <ArduinoHttpClient.h>   
+#include <ArduinoHttpClient.h>
 #include <SoftwareSerial.h>
 #include <RTC.h>
 
@@ -9,9 +9,9 @@ const char* ssid = "Verizon-RC400L-24";
 const char* password = "9b18963e";
 
 // JS server IP address and port
-const char kHostname[] = "192.168.1.197"; // JS server's local! IP
-const int kPort = 5000;                     // JS server port
-const char kPath[] = "/api/query/sendData";      // Path on the JS server
+const char kHostname[] = "192.168.1.182";    // JS server's local! IP
+const int kPort = 5000;                      // JS server port
+const char kPath[] = "/api/query/sendData";  // Path on the JS server
 
 // Number of milliseconds to wait without receiving any data before we give up
 const int kNetworkTimeout = 30 * 1000;
@@ -23,12 +23,12 @@ const int numMonitors = 2;
 int consecutiveMonitorErrors[numMonitors];
 int consecutiveChecksumErrors[numMonitors];
 String lora_RX_address;
-const char* locations[] = {"Library", "Penn Hall", "Servo", "CUB", "Apple", "Musselman Stadium"};
+const char* locations[] = { "Library", "Penn Hall", "Servo", "CUB", "Apple", "Musselman Stadium" };
 
 // String for the data we receive from LoRa transmissions
 String incomingString;
 // LoRa
-SoftwareSerial lora(2,3); // RX, TX pin numbers on arduino board.
+SoftwareSerial lora(2, 3);  // RX, TX pin numbers on arduino board.
 
 int calculateChecksum(String data) {
   int checksum = 0;
@@ -39,21 +39,21 @@ int calculateChecksum(String data) {
 }
 
 void setup() {
-  Serial.begin(9600); 
- 
+  Serial.begin(9600);
 
-  lora.begin(9600);   // Start LoRa communication on 9600 Baud - Spencer
-  lora.setTimeout(500); // Max time LoRa will allow for a transmission - Spencer 
 
-  delay(1000); 
+  lora.begin(9600);      // Start LoRa communication on 9600 Baud - Spencer
+  lora.setTimeout(500);  // Max time LoRa will allow for a transmission - Spencer
+
+  delay(1000);
 
   //Start Spencer
   //setup the start time for the RTC (Real Time Clock) on the arduino.
   RTC.begin();
-  RTCTime startTime(21, Month::OCTOBER, 2024, 13, 43, 00, 
-    DayOfWeek::MONDAY, SaveLight::SAVING_TIME_ACTIVE);
+  RTCTime startTime(21, Month::OCTOBER, 2024, 13, 43, 00,
+                    DayOfWeek::MONDAY, SaveLight::SAVING_TIME_ACTIVE);
   RTC.setTime(startTime);
-  //End Spencer 
+  //End Spencer
 
   Serial.println("Connecting to Wi-Fi...");
 
@@ -65,8 +65,8 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  
- // Print success message and IP address
+
+  // Print success message and IP address
   Serial.println();
   Serial.println("Connected to Wi-Fi!");
   Serial.print("IP Address: ");
@@ -74,21 +74,21 @@ void setup() {
 }
 
 void loop() {
-//Start Spencer
- RTCTime timeStamp;
+  //Start Spencer
+  RTCTime timeStamp;
   RTCTime startTime;
   RTCTime timeOut;
   //End Spencer
 
   WiFiClient wifiClient;
-  HttpClient httpClient(wifiClient, kHostname, kPort); // Use JS server IP and port
+  HttpClient httpClient(wifiClient, kHostname, kPort);  // Use JS server IP and port
 
   //String jsonString = "{\"Temperature\": 69, \"CO2\": .22, \"LORA Address\": \"example\"}";
-  
-    //Start Spencer- slight modifications from Connor
-      // Gateway will send a request to the current monitor to send its sensor data back.
+
+  //Start Spencer- slight modifications from Connor
+  // Gateway will send a request to the current monitor to send its sensor data back.
   //  It will then wait for a response, if one is received it is parsed, checked, and sent to database.
-  //  If a response is not recieved in a given time, then it will move to the next monitor 
+  //  If a response is not recieved in a given time, then it will move to the next monitor
   //   (poss. to add a message notifying admin that a monitor may be failing)
   for (int currMonitor = 2; currMonitor <= numMonitors; ++currMonitor) {
     lora_RX_address = String(currMonitor);
@@ -96,113 +96,112 @@ void loop() {
 
     Serial.println("Requesting Data from " + lora_RX_address);
     //send a request to the current monitor for its sensor data.
-    lora.println("AT+SEND=" + lora_RX_address + ",12,DATA_REQUEST"); // LoRa sends AT command for data
+    lora.println("AT+SEND=" + lora_RX_address + ",12,DATA_REQUEST");  // LoRa sends AT command for data
     delay(1000);
-    
+
     //retrieve the current time, this timestamp is used on the website.
     // timestamp says when the current sensor data was measured.
     RTC.getTime(timeStamp);
     Serial.println(timeStamp);
     delay(28000);
 
-    //checks if anything has been received yet 
-    if(lora.available()) {
+    //checks if anything has been received yet
+    if (lora.available()) {
 
       //read in the data
       incomingString = lora.readString();
-      if(incomingString.length() > 0){
-      //checksum
+      if (incomingString.length() > 0) {
+        //checksum
 
-      // Make sure incoming string has checksum
-      int chkIndex = incomingString.indexOf("CHK:");
-    
-      if (chkIndex != -1) {
-        
-        //Remove RSSI numbers from recevied string
-        int rssiIndex = incomingString.indexOf(",-");
-        String message = incomingString.substring(0, rssiIndex);
+        // Make sure incoming string has checksum
+        int chkIndex = incomingString.indexOf("CHK:");
 
-        message = message.substring(message.indexOf(",") + 1, message.length());
-         message = message.substring(message.indexOf(",") + 1, message.length());
+        if (chkIndex != -1) {
 
-        chkIndex = message.indexOf("CHK:");
-        Serial.println("Message:" + message);
-        String dataString = message.substring(0, chkIndex);
-    
-        int receivedChecksum = message.substring(chkIndex + 4).toInt();
+          //Remove RSSI numbers from recevied string
+          int rssiIndex = incomingString.indexOf(",-");
+          String message = incomingString.substring(0, rssiIndex);
 
-        // Calculate checksum for data part and verify
-        int calculatedChecksum = calculateChecksum(dataString);
-        Serial.println(calculatedChecksum);
+          message = message.substring(message.indexOf(",") + 1, message.length());
+          message = message.substring(message.indexOf(",") + 1, message.length());
 
-      //after parsing data out and checksums
-      dataString = dataString + ("\"EndpointIndex\":" + String(currMonitor) + ",");
-      String locationName = locations[currMonitor - 2];
-      dataString = dataString + ("\"Location\":\"" + locationName + "\",");
-      dataString = dataString + ("\"Timestamp\":\"" + String(timeStamp) + "\"}");
-      Serial.println(dataString);
-      //End Spencer 
+          chkIndex = message.indexOf("CHK:");
+          Serial.println("Message:" + message);
+          String dataString = message.substring(0, chkIndex);
 
-  // Send the POST request
-  if (calculatedChecksum == receivedChecksum) {
-          Serial.println("Data received correctly: " + dataString);
-          Serial.println("Sending POST request to JS server...");
-        
-  int err = httpClient.post(kPath, "application/json", dataString);
-  if (err == 0) {
-    Serial.println("POST request sent successfully");
+          int receivedChecksum = message.substring(chkIndex + 4).toInt();
 
-    // Get the response status code
-    err = httpClient.responseStatusCode();
-    if (err >= 0) {
-      Serial.print("Got status code: ");
-      Serial.println(err);
+          // Calculate checksum for data part and verify
+          int calculatedChecksum = calculateChecksum(dataString);
+          Serial.println(calculatedChecksum);
 
-      // Skip response headers and print the body
-      err = httpClient.skipResponseHeaders();
-      if (err >= 0) {
-        int bodyLen = httpClient.contentLength();
-        Serial.print("Content length is: ");
-        Serial.println(bodyLen);
-        Serial.println();
-        Serial.println("Body returned follows:");
+          //after parsing data out and checksums
+          dataString = dataString + ("\"EndpointIndex\":" + String(currMonitor) + ",");
+          String locationName = locations[currMonitor - 2];
+          dataString = dataString + ("\"Location\":\"" + locationName + "\",");
+          dataString = dataString + ("\"Timestamp\":\"" + String(timeStamp) + "\"}");
+          Serial.println(dataString);
+          //End Spencer
 
-        unsigned long timeoutStart = millis();
-        char c;
-        while ((httpClient.connected() || httpClient.available()) && ((millis() - timeoutStart) < kNetworkTimeout)) {
-          if (httpClient.available()) {
-            c = httpClient.read();  // Read response body
-            Serial.print(c);
-            timeoutStart = millis();
+          // Send the POST request
+          if (calculatedChecksum == receivedChecksum) {
+            Serial.println("Data received correctly: " + dataString);
+            Serial.println("Sending POST request to JS server...");
+
+            int err = httpClient.post(kPath, "application/json", dataString);
+            if (err == 0) {
+              Serial.println("POST request sent successfully");
+
+              // Get the response status code
+              err = httpClient.responseStatusCode();
+              if (err >= 0) {
+                Serial.print("Got status code: ");
+                Serial.println(err);
+
+                // Skip response headers and print the body
+                err = httpClient.skipResponseHeaders();
+                if (err >= 0) {
+                  int bodyLen = httpClient.contentLength();
+                  Serial.print("Content length is: ");
+                  Serial.println(bodyLen);
+                  Serial.println();
+                  Serial.println("Body returned follows:");
+
+                  unsigned long timeoutStart = millis();
+                  char c;
+                  while ((httpClient.connected() || httpClient.available()) && ((millis() - timeoutStart) < kNetworkTimeout)) {
+                    if (httpClient.available()) {
+                      c = httpClient.read();  // Read response body
+                      Serial.print(c);
+                      timeoutStart = millis();
+                    } else {
+                      delay(kNetworkDelay);
+                    }
+                  }
+                } else {
+                  Serial.print("Failed to skip response headers: ");
+                  Serial.println(err);
+                }
+              } else {
+                Serial.print("Getting response failed: ");
+                Serial.println(err);
+              }
+            } else {
+              Serial.print("POST request failed: ");
+              Serial.println(err);
+            }
+            consecutiveChecksumErrors[currMonitor] = 0;
+            httpClient.stop();  // Stop the client
           } else {
-            delay(kNetworkDelay);
+            Serial.println("Checksum not correct, data corrupted!");
+            consecutiveChecksumErrors[currMonitor] += 1;
+            if (consecutiveChecksumErrors[currMonitor] > 3) {
+              String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
+              httpClient.post(kPath, "/error-log", errorMessage);
+            }
           }
         }
-      } else {
-        Serial.print("Failed to skip response headers: ");
-        Serial.println(err);
       }
-    } else {
-      Serial.print("Getting response failed: ");
-      Serial.println(err);
     }
-  } else {
-    Serial.print("POST request failed: ");
-    Serial.println(err);
   }
-  consecutiveChecksumErrors[currMonitor] = 0;
-  httpClient.stop();  // Stop the client
-      }
-    }
-      else {
-           Serial.println("Checksum not correct, data corrupted!");
-          consecutiveChecksumErrors[currMonitor] += 1;
-           if(consecutiveChecksumErrors[currMonitor] > 3){
-            String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
-            httpClient.post(kPath, "/error-log", errorMessage);
-          }
-         } 
-}
-}
-}
 }
