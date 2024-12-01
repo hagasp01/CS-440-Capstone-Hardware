@@ -30,6 +30,7 @@ String incomingString;
 // LoRa
 SoftwareSerial lora(2, 3);  // RX, TX pin numbers on arduino board.
 
+// Calcuate checksum from data string - Joe
 int calculateChecksum(String data) {
   int checksum = 0;
   for (int i = 0; i < data.length(); i++) {
@@ -111,14 +112,14 @@ void loop() {
       //read in the data
       incomingString = lora.readString();
       if (incomingString.length() > 0) {
-        //checksum
-
+        //Checksum Verification - Start Joe
+        
         // Make sure incoming string has checksum
         int chkIndex = incomingString.indexOf("CHK:");
 
         if (chkIndex != -1) {
 
-          //Remove RSSI numbers from recevied string
+          //Remove RSSI numbers from received string
           int rssiIndex = incomingString.indexOf(",-");
           String message = incomingString.substring(0, rssiIndex);
 
@@ -134,6 +135,7 @@ void loop() {
           // Calculate checksum for data part and verify
           int calculatedChecksum = calculateChecksum(dataString);
           Serial.println(calculatedChecksum);
+          // End Joe
 
           //after parsing data out and checksums
           String locationName = locations[currMonitor - 2];
