@@ -136,7 +136,6 @@ void loop() {
           Serial.println(calculatedChecksum);
 
           //after parsing data out and checksums
-          dataString = dataString + ("\"EndpointIndex\":" + String(currMonitor) + ",");
           String locationName = locations[currMonitor - 2];
           dataString = dataString + ("\"Location\":\"" + locationName + "\",");
           dataString = dataString + ("\"Timestamp\":\"" + String(timeStamp) + "\"}");
