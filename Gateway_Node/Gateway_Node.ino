@@ -1,34 +1,40 @@
+//Begin code from Connor Whitlow
 #include <WiFi.h>
 #include <ArduinoHttpClient.h>
 #include <SoftwareSerial.h>
 #include <RTC.h>
 
-
 // Replace with your Wi-Fi credentials
-const char* ssid = "Verizon-RC400L-24";
-const char* password = "9b18963e";
+const char* ssid = ""; //This is the name of your WiFi
+const char* password = ""; 
 
-// JS server IP address and port
-const char kHostname[] = "192.168.1.182";    // JS server's local! IP
-const int kPort = 5000;                      // JS server port
-const char kPath[] = "/api/query/sendData";  // Path on the JS server
+// Server IP address and port
+const char kHostname[] = "";    // Server's local IP
+const int kPort = ;                      // Enter the port the server is listening on
+const char kPath[] = ;  // Path on the server
 
+//These numbers should be altered if you are going to send requests from one network to another
 // Number of milliseconds to wait without receiving any data before we give up
 const int kNetworkTimeout = 30 * 1000;
 // Number of milliseconds to wait if no data is available before trying again
 const int kNetworkDelay = 1000;
 
-// Number of monitors on the network that the gateway will get data from + 1 (for the Gateway's address)
+// Number of monitors on the network that the gateway will get data from 1 (for the Gateway's address) 
+// For clarity- the Gateway Node is labeled as 1, so name your endpoints 2...x
+// NumMonitors = 2 will not loop and just repeatedly request Monitor 2. 
+// NumMonitors = 3 will alternate between 2 and 3. 
 const int numMonitors = 2;
 int consecutiveMonitorErrors[numMonitors];
 int consecutiveChecksumErrors[numMonitors];
 String lora_RX_address;
-const char* locations[] = { "Library", "Penn Hall", "Servo", "CUB", "Apple", "Musselman Stadium" };
+//Populate this array with the locations of your sensors. Index 0 in this array corresponds to the location of endpoint 2; 1 corresponds to 3; etc.
+const char* locations[] = {};
 
 // String for the data we receive from LoRa transmissions
 String incomingString;
 // LoRa
 SoftwareSerial lora(2, 3);  // RX, TX pin numbers on arduino board.
+//End code from Connor Whitlow 
 
 // Calcuate checksum from data string - Joe
 int calculateChecksum(String data) {
@@ -40,6 +46,7 @@ int calculateChecksum(String data) {
 }
 
 void setup() {
+  //Begin Code from Spencer Hagan
   Serial.begin(9600);
 
 
@@ -48,14 +55,14 @@ void setup() {
 
   delay(1000);
 
-  //Start Spencer
   //setup the start time for the RTC (Real Time Clock) on the arduino.
   RTC.begin();
   RTCTime startTime(21, Month::OCTOBER, 2024, 13, 43, 00,
                     DayOfWeek::MONDAY, SaveLight::SAVING_TIME_ACTIVE);
   RTC.setTime(startTime);
-  //End Spencer
+  //End code from Spencer Hagan
 
+  //Begin Code from Connor Whitlow
   Serial.println("Connecting to Wi-Fi...");
 
   // Connect to the Wi-Fi
@@ -72,21 +79,24 @@ void setup() {
   Serial.println("Connected to Wi-Fi!");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());  // Display the IP address assigned
+  //End code from Connor Whitlow
 }
 
 void loop() {
-  //Start Spencer
+  //Begin code from Spencer Hagan
   RTCTime timeStamp;
   RTCTime startTime;
   RTCTime timeOut;
-  //End Spencer
+  //End code from Spencer Hagan
 
+  //Begin code from Connor Whitlow
   WiFiClient wifiClient;
-  HttpClient httpClient(wifiClient, kHostname, kPort);  // Use JS server IP and port
-
+  HttpClient httpClient(wifiClient, kHostname, kPort);  // This line will construct a clinet object using the locations specified
+  
+  
   //String jsonString = "{\"Temperature\": 69, \"CO2\": .22, \"LORA Address\": \"example\"}";
 
-  //Start Spencer- slight modifications from Connor
+  //Start Spencer- slight modifications from Connor regarding formatting, specifics of data. Actual code for requesting was from Spencer
   // Gateway will send a request to the current monitor to send its sensor data back.
   //  It will then wait for a response, if one is received it is parsed, checked, and sent to database.
   //  If a response is not recieved in a given time, then it will move to the next monitor
@@ -138,17 +148,19 @@ void loop() {
           // End Joe
 
           //after parsing data out and checksums
-          String locationName = locations[currMonitor - 2];
+          String locationName = locations[currMonitor - 2];  //Location array and appending by Connor 
           dataString = dataString + ("\"Location\":\"" + locationName + "\",");
           dataString = dataString + ("\"Timestamp\":\"" + String(timeStamp) + "\"}");
           Serial.println(dataString);
-          //End Spencer
+          //End code from Spencer Hagan
 
+          //Begin Code from Connor Whitlow
           // Send the POST request
           if (calculatedChecksum == receivedChecksum) {
             Serial.println("Data received correctly: " + dataString);
             Serial.println("Sending POST request to JS server...");
 
+            //Posts to the server with a header indicating data is in JSON format
             int err = httpClient.post(kPath, "application/json", dataString);
             if (err == 0) {
               Serial.println("POST request sent successfully");
@@ -170,6 +182,7 @@ void loop() {
 
                   unsigned long timeoutStart = millis();
                   char c;
+                  //Changing network delay can have significant bearing on the success of ths loop
                   while ((httpClient.connected() || httpClient.available()) && ((millis() - timeoutStart) < kNetworkTimeout)) {
                     if (httpClient.available()) {
                       c = httpClient.read();  // Read response body
@@ -196,6 +209,7 @@ void loop() {
           } else {
             Serial.println("Checksum not correct, data corrupted!");
             consecutiveChecksumErrors[currMonitor] += 1;
+            //error logging for consecutive checksum errors
             if (consecutiveChecksumErrors[currMonitor] > 3) {
               String errorMessage = "Monitor " + String(currMonitor) + " is experiencing consecutive checksum errors.";
               httpClient.post(kPath, "/error-log", errorMessage);
